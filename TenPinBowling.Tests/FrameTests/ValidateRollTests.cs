@@ -16,7 +16,7 @@ public class ValidateRollTests
     public void WhenSecondRollIsInRange_ReturnsTrue([Range(0, 10)] int roll)
     {
         var frame = new Frame();
-        frame.SetRoll(10 - roll);
+        frame.AddRoll(10 - roll);
 
         frame.ValidateRoll(roll).Should().BeTrue();
     }
@@ -26,7 +26,7 @@ public class ValidateRollTests
     public void WhenTotalIsOutOfRange_ReturnsFalse([Range(1, 10)] int roll)
     {
         var frame = new Frame();
-        frame.SetRoll(11 - roll);
+        frame.AddRoll(11 - roll);
 
         frame.ValidateRoll(roll).Should().BeFalse();
     }
@@ -37,7 +37,7 @@ public class ValidateRollTests
     public void WhenSecondRollIsOutOfRange_ReturnsFalse(int roll)
     {
         var frame = new Frame();
-        frame.SetRoll(0);
+        frame.AddRoll(0);
 
         frame.ValidateRoll(roll).Should().BeFalse();
     }
@@ -56,8 +56,8 @@ public class ValidateRollTests
     public void WhenRollingMoreThanTwice_ReturnsFalse()
     {
         var frame = new Frame();
-        frame.SetRoll(0);
-        frame.SetRoll(0);
+        frame.AddRoll(0);
+        frame.AddRoll(0);
 
         frame.ValidateRoll(0).Should().BeFalse();
     }
