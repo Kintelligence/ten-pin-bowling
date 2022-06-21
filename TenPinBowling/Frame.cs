@@ -74,7 +74,7 @@ public class Frame : IFrame
         }
     }
 
-    public string Print()
+    public string RollsAsAscii()
     {
         if (Rolls[0] is null)
         {
@@ -88,12 +88,12 @@ public class Frame : IFrame
 
         if (Rolls[1] == null)
         {
-            return $"[{Rolls[1]}, ]";
+            return $"[{Rolls[0]}, ]";
         }
 
         if (Rolls[1] + Rolls[0] == 10)
         {
-            return $"[{Rolls[1]},/]";
+            return $"[{Rolls[0]},/]";
         }
 
         return $"[{Rolls[0]},{Rolls[1]}]";
@@ -133,7 +133,7 @@ public class Frame : IFrame
                 return null;
             }
 
-            if (Next.Rolls[1] is null)
+            if (Next.IsBonus || Next.Rolls[1] is null)
             {
                 if (Next.Next?.Rolls[0] is null)
                 {
@@ -162,5 +162,26 @@ public class Frame : IFrame
 
         SubTotal = prev + Rolls[0] + Rolls[1];
         return SubTotal;
+    }
+
+    public string SubTotalAsAscii()
+    {
+        return $"[{SubTotal?.ToString() ?? "",3}]";
+    }
+
+    public void Append(IFrame frame)
+    {
+        if (frame.Previous is not null)
+        {
+            throw new InvalidOperationException("Cannot append frame. Next frame already has a previous");
+        }
+
+        if (Next is not null)
+        {
+            throw new InvalidOperationException("Cannot append frame. Current frame already has a next");
+        }
+
+        frame.Previous = this;
+        Next = frame;
     }
 }

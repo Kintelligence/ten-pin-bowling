@@ -41,7 +41,7 @@ public class TryCalculateSubTotalTests
         frame.AddRoll(0);
         frame.AddRoll(10);
         var next = new Frame();
-        frame.Next = next;
+        frame.Append(next);
         next.AddRoll(roll);
         next.AddRoll(1);
 
@@ -55,7 +55,7 @@ public class TryCalculateSubTotalTests
         var frame = new Frame();
         frame.AddRoll(10);
         var next = new Frame();
-        frame.Next = next;
+        frame.Append(next);
         next.AddRoll(rollA);
         next.AddRoll(rollB);
 
@@ -68,10 +68,10 @@ public class TryCalculateSubTotalTests
         var frame = new Frame();
         frame.AddRoll(10);
         var next = new Frame();
-        frame.Next = next;
+        frame.Append(next);
         next.AddRoll(10);
         var last = new Frame();
-        next.Next = last;
+        next.Append(last);
         last.AddRoll(10);
 
         frame.TryCalculateSubTotal().Should().Be(30);
@@ -85,9 +85,47 @@ public class TryCalculateSubTotalTests
         frame.AddRoll(roll);
         frame.AddRoll(9 - roll);
         var next = new Frame();
-        frame.Next = next;
+        frame.Append(next);
         next.AddRoll(roll);
 
         frame.TryCalculateSubTotal().Should().Be(9);
+    }
+
+    [Theory]
+    [AutoData]
+    public void WhenRollIsRequiredToCalculatePreviousSubTotals_PreviousSubTotalsAreCalculated([Range(0, 4)] int roll)
+    {
+        var previous = new Frame();
+        previous.AddRoll(5);
+        previous.AddRoll(5);
+        var current = new Frame();
+        previous.Append(current);
+        current.AddRoll(roll);
+        current.AddRoll(roll);
+
+        current.TryCalculateSubTotal();
+
+        previous.SubTotal.Should().Be(10 + roll);
+    }
+
+    [Theory]
+    [AutoData]
+    public void WhenMultipleFrames_LastSubTotalIsTotal(IEnumerable<int> rolls)
+    {
+        rolls = rolls.Select(c => Math.Abs(c) % 4);
+        IFrame? last = null;
+
+        foreach (var roll in rolls)
+        {
+            var current = new Frame();
+            current.AddRoll(roll);
+            current.AddRoll(roll);
+            last?.Append(current);
+            last = current;
+        }
+
+        last?.TryCalculateSubTotal();
+
+        last?.SubTotal.Should().Be(rolls.Sum() * 2);
     }
 }

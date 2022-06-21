@@ -18,9 +18,35 @@ public class BonusFrame : IFrame
         }
     }
 
-    public string Print()
+    public string RollsAsAscii()
     {
-        return $"[{Rolls[0]?.ToString() ?? " "}]";
+        if (Previous is not null)
+        {
+            if (Previous.IsFull && Previous.SubTotal is null)
+            {
+                return $"[{Rolls[0]?.ToString() ?? " "}]";
+            }
+
+            if (Previous.IsBonus &&
+                Previous.Previous is not null &&
+                Previous.Previous.IsFull &&
+                Previous.Previous.Rolls[0] == 10)
+            {
+                return $"[{Rolls[0]?.ToString() ?? " "}]";
+            }
+        }
+
+        if (Rolls[0] is null)
+        {
+            return "";
+        }
+
+        return $"[{Rolls[0]}]";
+    }
+
+    public string SubTotalAsAscii()
+    {
+        return "";
     }
 
     public int? TryCalculateSubTotal()
@@ -31,5 +57,21 @@ public class BonusFrame : IFrame
     public bool ValidateRoll(int roll)
     {
         return roll >= 0 && roll <= 10;
+    }
+
+    public void Append(IFrame frame)
+    {
+        if (frame.Previous is not null)
+        {
+            throw new InvalidOperationException("Cannot append frame. Next frame already has a previous");
+        }
+
+        if (Next is not null)
+        {
+            throw new InvalidOperationException("Cannot append frame. Current frame already has a next");
+        }
+
+        frame.Previous = this;
+        Next = frame;
     }
 }
