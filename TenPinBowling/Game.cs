@@ -77,6 +77,6 @@ public class Game
         }
 
         rollBuilder.AppendLine();
-        return rollBuilder.AppendLine(subTotalBuilder.ToString()).ToString();
+        return rollBuilder.Append(subTotalBuilder.ToString()).ToString();
     }
 }
