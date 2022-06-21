@@ -1,30 +1,37 @@
 namespace TenPinBowling;
 
-public class Frame
+public class Frame : IFrame
 {
     public int?[] Rolls { get; } = new int?[2];
+    public int? SubTotal { get; private set; }
+    public bool IsBonus => false;
+    public IFrame? Next { get; set; }
+    public IFrame? Previous { get; set; }
 
-    public bool IsFull()
+    public bool IsFull
     {
-        if (Rolls[0] is not null)
+        get
         {
-            if (Rolls[0] >= 10)
+            if (Rolls[0] is not null)
             {
-                return true;
+                if (Rolls[0] >= 10)
+                {
+                    return true;
+                }
+
+                if (Rolls[1] is not null)
+                {
+                    return true;
+                }
             }
 
-            if (Rolls[1] is not null)
-            {
-                return true;
-            }
+            return false;
         }
-
-        return false;
     }
 
     public bool ValidateRoll(int roll)
     {
-        if (IsFull())
+        if (IsFull)
         {
             return false;
         }
@@ -67,7 +74,7 @@ public class Frame
         }
     }
 
-    public override string ToString()
+    public string Print()
     {
         if (Rolls[0] is null)
         {
@@ -90,5 +97,70 @@ public class Frame
         }
 
         return $"[{Rolls[0]},{Rolls[1]}]";
+    }
+
+    public int? TryCalculateSubTotal()
+    {
+        if (SubTotal is not null)
+        {
+            return SubTotal;
+        }
+
+        if (!IsFull)
+        {
+            return null;
+        }
+
+        var prev = 0;
+
+        if (Previous is not null)
+        {
+            Previous.TryCalculateSubTotal();
+
+            if (Previous.SubTotal is null)
+            {
+                return null;
+            }
+
+            prev = Previous.SubTotal.Value;
+        }
+
+        if (Rolls[0] == 10)
+        {
+            if (Next is null ||
+                !Next.IsFull)
+            {
+                return null;
+            }
+
+            if (Next.Rolls[1] is null)
+            {
+                if (Next.Next?.Rolls[0] is null)
+                {
+                    return null;
+                }
+
+                SubTotal = prev + 10 + Next.Rolls[0] + Next.Next.Rolls[0];
+                return SubTotal;
+            }
+
+            SubTotal = prev + 10 + Next.Rolls[0] + Next.Rolls[1];
+            return SubTotal;
+        }
+
+        if (Rolls[0] + Rolls[1] == 10)
+        {
+            if (Next is null ||
+                Next.Rolls[0] is null)
+            {
+                return null;
+            }
+
+            SubTotal = prev + 10 + Next.Rolls[0];
+            return SubTotal;
+        }
+
+        SubTotal = prev + Rolls[0] + Rolls[1];
+        return SubTotal;
     }
 }
