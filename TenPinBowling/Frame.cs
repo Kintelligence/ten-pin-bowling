@@ -99,6 +99,53 @@ public class Frame : IFrame
         return $"[{Rolls[0]},{Rolls[1]}]";
     }
 
+    private int? TryCalculateStrike(int prev)
+    {
+        if (Next is null ||
+            !Next.IsFull)
+        {
+            return null;
+        }
+
+        if (Next.IsBonus || Next.Rolls[1] is null)
+        {
+            if (Next.Next?.Rolls[0] is null)
+            {
+                return null;
+            }
+
+            SubTotal = prev + 10 + Next.Rolls[0] + Next.Next.Rolls[0];
+            return SubTotal;
+        }
+
+        SubTotal = prev + 10 + Next.Rolls[0] + Next.Rolls[1];
+        return SubTotal;
+    }
+
+    private int? TryCalculateSpare(int prev)
+    {
+        if (Next is null ||
+            Next.Rolls[0] is null)
+        {
+            return null;
+        }
+
+        SubTotal = prev + 10 + Next.Rolls[0];
+        return SubTotal;
+    }
+
+    private int? GetPreviousSubTotal()
+    {
+        if (Previous is null)
+        {
+            return 0;
+        }
+
+        Previous.TryCalculateSubTotal();
+
+        return Previous.SubTotal;
+    }
+
     public int? TryCalculateSubTotal()
     {
         if (SubTotal is not null)
@@ -111,53 +158,21 @@ public class Frame : IFrame
             return null;
         }
 
-        var prev = 0;
+        var prev = GetPreviousSubTotal();
 
-        if (Previous is not null)
+        if (prev is null)
         {
-            Previous.TryCalculateSubTotal();
-
-            if (Previous.SubTotal is null)
-            {
-                return null;
-            }
-
-            prev = Previous.SubTotal.Value;
+            return null;
         }
 
         if (Rolls[0] == 10)
         {
-            if (Next is null ||
-                !Next.IsFull)
-            {
-                return null;
-            }
-
-            if (Next.IsBonus || Next.Rolls[1] is null)
-            {
-                if (Next.Next?.Rolls[0] is null)
-                {
-                    return null;
-                }
-
-                SubTotal = prev + 10 + Next.Rolls[0] + Next.Next.Rolls[0];
-                return SubTotal;
-            }
-
-            SubTotal = prev + 10 + Next.Rolls[0] + Next.Rolls[1];
-            return SubTotal;
+            return TryCalculateStrike(prev.Value);
         }
 
         if (Rolls[0] + Rolls[1] == 10)
         {
-            if (Next is null ||
-                Next.Rolls[0] is null)
-            {
-                return null;
-            }
-
-            SubTotal = prev + 10 + Next.Rolls[0];
-            return SubTotal;
+            return TryCalculateSpare(prev.Value);
         }
 
         SubTotal = prev + Rolls[0] + Rolls[1];
